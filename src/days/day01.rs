@@ -4,6 +4,16 @@ use anyhow::Result;
 
 use super::list_ops::count_items_in_list;
 
+pub fn day01(input: String) -> Result<()> {
+    let day01_parsed_input = parse_day01(input)?;
+    let day01a_total = compute_day01a(&day01_parsed_input)?;
+    println!("Day 01 A Input result: {:?}", day01a_total);
+    let day01b_total = compute_day01b(&day01_parsed_input)?;
+    println!("Day 01 B Input result: {:?}", day01b_total);
+
+    Ok(())
+}
+
 pub fn parse_day01(input: String) -> Result<(Vec<i32>, Vec<i32>)> {
     let as_lines = input.lines();
 
