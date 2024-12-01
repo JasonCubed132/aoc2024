@@ -1,6 +1,6 @@
 use anyhow::Result;
-use std::{fs, path::Path};
 use std::io::Write;
+use std::{fs, path::Path};
 
 pub fn read_file(path: &Path) -> Result<String> {
     let contents = fs::read_to_string(path)?;

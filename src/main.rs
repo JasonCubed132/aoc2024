@@ -7,7 +7,7 @@ use days::day01;
 
 enum InputType {
     MAIN,
-    EXAMPLE
+    EXAMPLE,
 }
 
 fn main() -> Result<()> {
@@ -15,18 +15,16 @@ fn main() -> Result<()> {
     let input_type = InputType::MAIN;
 
     match day {
-        1 => {
-            match input_type {
-                InputType::EXAMPLE => {
-                    let day01_example_input = read_example_input(1)?;
-                    day01(day01_example_input)?;
-                }
-                InputType::MAIN => {
-                    let day01_input = read_input(1)?;
-                    day01(day01_input)?;
-                }
+        1 => match input_type {
+            InputType::EXAMPLE => {
+                let day01_example_input = read_example_input(1)?;
+                day01(day01_example_input)?;
             }
-        }
+            InputType::MAIN => {
+                let day01_input = read_input(1)?;
+                day01(day01_input)?;
+            }
+        },
         _ => {
             println!("Day not found!")
         }

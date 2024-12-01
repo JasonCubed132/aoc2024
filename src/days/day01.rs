@@ -15,20 +15,16 @@ pub fn day01(input: String) -> Result<()> {
 }
 
 pub fn parse_day01(input: String) -> Result<(Vec<i32>, Vec<i32>)> {
-    let as_lines = input.lines();
-
-    let mut list_1 = Vec::new();
-    let mut list_2 = Vec::new();
-    for line in as_lines {
-        let parts = line.split("   ");
-        let parts_list: Vec<&str> = parts.collect();
-        let part_1: i32 = parts_list[0].parse()?;
-        let part_2: i32 = parts_list[1].parse()?;
-        list_1.push(part_1);
-        list_2.push(part_2);
-    }
-
-    Ok((list_1, list_2))
+    (input
+        .lines()
+        .map(|line| line.split_once("   ").unwrap())
+        .map(|(a, b)| -> Result<(i32, i32)> {
+            let parsed_a = a.parse::<i32>()?;
+            let parsed_b = b.parse::<i32>()?;
+            Ok((parsed_a, parsed_b))
+        })
+        .collect::<Result<Vec<_>>>())
+    .map(|x| x.into_iter().unzip())
 }
 
 pub fn compute_day01a(input: &(Vec<i32>, Vec<i32>)) -> Result<i32> {
@@ -38,7 +34,7 @@ pub fn compute_day01a(input: &(Vec<i32>, Vec<i32>)) -> Result<i32> {
     list_2.sort();
 
     let lists = zip(list_1, list_2);
-    let diff = lists.map(|(a, b)| { (a - b).abs() });
+    let diff = lists.map(|(a, b)| (a - b).abs());
     let total: i32 = diff.sum();
 
     Ok(total)
@@ -49,16 +45,10 @@ pub fn compute_day01b(input: &(Vec<i32>, Vec<i32>)) -> Result<i32> {
 
     let list_2_counts = count_items_in_list(list_2);
 
-    let mut total = 0;
-
-    for item in list_1 {
-        match list_2_counts.get(&item) {
-            Some(x) => {
-                total += item * x;
-            }
-            None => {}
-        }
-    }
+    let total = list_1
+        .iter()
+        .map(|item| item * list_2_counts.get(&item).unwrap_or(&0))
+        .sum();
 
     Ok(total)
 }
