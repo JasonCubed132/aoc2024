@@ -19,12 +19,10 @@ fn main() -> Result<()> {
             match input_type {
                 InputType::EXAMPLE => {
                     let day01_example_input = read_example_input(1)?;
-                    println!("Example");
                     day01(day01_example_input)?;
                 }
                 InputType::MAIN => {
                     let day01_input = read_input(1)?;
-                    println!("Main");
                     day01(day01_input)?;
                 }
             }
