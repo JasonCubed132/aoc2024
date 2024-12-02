@@ -33,10 +33,7 @@ pub fn compute_day01a(input: &(Vec<i32>, Vec<i32>)) -> Result<i32> {
     list_1.sort();
     list_2.sort();
 
-    let lists = zip(list_1, list_2);
-    let diff = lists.map(|(a, b)| (a - b).abs());
-    let total: i32 = diff.sum();
-
+    let total = zip(list_1, list_2).map(|(a, b)| (a - b).abs()).sum();
     Ok(total)
 }
 
