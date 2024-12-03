@@ -30,27 +30,34 @@ pub fn compute_day02a(input: &Vec<Vec<i32>>) -> Result<i32> {
     let mut count = 0;
 
     for report in input {
-        let mut ascending = true;
-        let mut descending = true;
-        for i in 1..report.len() {
-            let curr = report[i - 1];
-            let next = report[i];
-
-            if curr <= next {
-                descending = false;
-                if (next - curr) > 3 {
-                    ascending = false;
+        let (asc, dec) = report
+            .windows(2)
+            .map(|window| {
+                let diff_valid =
+                    (window[0] - window[1]).abs() <= 3 && (window[0] - window[1]).abs() >= 1;
+                if diff_valid {
+                    if window[0] < window[1] {
+                        Some(true)
+                    } else {
+                        Some(false)
+                    }
+                } else {
+                    None
                 }
-            }
-            if curr >= next {
-                ascending = false;
-                if (curr - next) > 3 {
-                    descending = false;
+            })
+            .fold((true, true), |(asc, dec), item| {
+                if item.is_none() {
+                    (false, false)
+                } else {
+                    if item.unwrap() {
+                        (asc, false)
+                    } else {
+                        (false, dec)
+                    }
                 }
-            }
-        }
+            });
 
-        if ascending || descending {
+        if asc || dec {
             count += 1;
         }
     }
