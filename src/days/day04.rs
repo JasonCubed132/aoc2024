@@ -24,13 +24,10 @@ fn spawn_checker(
     direction: (i32, i32),
 ) -> bool {
     if sequence.len() == 0 {
-        println!("Success!");
         return true;
     }
 
-    println!("Coord {:?} Reamining {:?}", current_coord, sequence);
     if !(grid[current_coord.1][current_coord.0].eq(&sequence[0])) {
-        println!("Bad check on {:?}", sequence[0]);
         return false;
     }
 
@@ -39,10 +36,10 @@ fn spawn_checker(
     let new_x = current_coord.0 as i32 + direction.0;
     let new_y = current_coord.1 as i32 + direction.1;
 
-    if !((new_x >= 0 && new_x < grid[current_coord.1].len() as i32)
-        && (new_y >= 0 && new_y < grid.len() as i32))
+    if new_sequence.len() > 0
+        && !((new_x >= 0 && new_x < grid[current_coord.1].len() as i32)
+            && (new_y >= 0 && new_y < grid.len() as i32))
     {
-        println!("Out of bounds {:?} {:?}", new_x, new_y);
         return false;
     }
     let new_coord = (new_x as usize, new_y as usize);
@@ -50,7 +47,10 @@ fn spawn_checker(
     spawn_checker(grid, new_sequence.to_vec(), new_coord, direction)
 }
 
-fn compute_day_a(input: &Vec<Vec<char>>) -> Result<i32> {
+fn check_for_string(
+    grid: &Vec<Vec<char>>,
+    string: String,
+) -> Result<Vec<((usize, usize), (i32, i32))>> {
     /*
        8 cases to evalutate:
        - Horizontal forward
@@ -73,23 +73,23 @@ fn compute_day_a(input: &Vec<Vec<char>>) -> Result<i32> {
         (-1, 0),
         (-1, 1),
     ];
-    let mut total = 0;
-    for start_y_coord in 0..input.len() {
-        for start_x_coord in 0..input[start_y_coord].len() {
+    let mut output = Vec::new();
+    for start_y_coord in 0..grid.len() {
+        for start_x_coord in 0..grid[start_y_coord].len() {
+            let start_coord = (start_x_coord, start_y_coord);
             for direction in directions {
-                if spawn_checker(
-                    input,
-                    "XMAX".chars().collect(),
-                    (start_x_coord, start_y_coord),
-                    direction,
-                ) {
-                    total += 1;
+                if spawn_checker(grid, string.chars().collect(), start_coord, direction) {
+                    output.push((start_coord, direction));
                 }
             }
         }
     }
 
-    Ok(total)
+    Ok(output)
+}
+
+fn compute_day_a(input: &Vec<Vec<char>>) -> Result<usize> {
+    Ok(check_for_string(input, "XMAS".to_string())?.len())
 }
 
 fn compute_day_b(input: &Vec<Vec<char>>) -> Result<i32> {
