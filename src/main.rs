@@ -7,6 +7,7 @@ mod days;
 use days::day01;
 use days::day02;
 use days::day03;
+use days::day04;
 
 enum InputType {
     MAIN,
@@ -14,8 +15,8 @@ enum InputType {
 }
 
 fn main() -> Result<()> {
-    let day = 3;
-    let input_type = InputType::MAIN;
+    let day = 4;
+    let input_type = InputType::EXAMPLE;
 
     let day_input = match input_type {
         InputType::EXAMPLE => read_example_input(day),
@@ -26,6 +27,7 @@ fn main() -> Result<()> {
         1 => day01(day_input),
         2 => day02(day_input),
         3 => day03(day_input),
+        4 => day04(day_input),
         _ => Err(anyhow!("Day not found!")),
     }
 }

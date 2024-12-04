@@ -1,8 +1,6 @@
 use anyhow::Result;
 use regex::Regex;
 
-use super::list_ops::count_items_in_list;
-
 #[derive(Debug)]
 enum INSTRUCTIONS {
     MUL(i32, i32),
