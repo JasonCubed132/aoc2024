@@ -1,3 +1,4 @@
+use anyhow::anyhow;
 use anyhow::Result;
 
 mod file_ops;
@@ -5,6 +6,7 @@ use file_ops::{read_example_input, read_input};
 mod days;
 use days::day01;
 use days::day02;
+use days::day03;
 
 enum InputType {
     MAIN,
@@ -12,34 +14,18 @@ enum InputType {
 }
 
 fn main() -> Result<()> {
-    let day = 2;
+    let day = 3;
     let input_type = InputType::EXAMPLE;
 
-    match day {
-        1 => match input_type {
-            InputType::EXAMPLE => {
-                let day01_example_input = read_example_input(1)?;
-                day01(day01_example_input)?;
-            }
-            InputType::MAIN => {
-                let day01_input = read_input(1)?;
-                day01(day01_input)?;
-            }
-        },
-        2 => match input_type {
-            InputType::EXAMPLE => {
-                let day02_example_input = read_example_input(2)?;
-                day02(day02_example_input)?;
-            }
-            InputType::MAIN => {
-                let day02_input = read_input(2)?;
-                day02(day02_input)?;
-            }
-        },
-        _ => {
-            println!("Day not found!")
-        }
-    }
+    let day_input = match input_type {
+        InputType::EXAMPLE => read_example_input(day),
+        InputType::MAIN => read_input(day),
+    }?;
 
-    Ok(())
+    match day {
+        1 => day01(day_input),
+        2 => day02(day_input),
+        3 => day03(day_input),
+        _ => Err(anyhow!("Day not found!")),
+    }
 }
