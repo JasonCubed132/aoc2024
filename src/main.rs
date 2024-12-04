@@ -16,7 +16,7 @@ enum InputType {
 
 fn main() -> Result<()> {
     let day = 4;
-    let input_type = InputType::MAIN;
+    let input_type = InputType::EXAMPLE;
 
     let day_input = match input_type {
         InputType::EXAMPLE => read_example_input(day),

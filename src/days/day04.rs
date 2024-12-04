@@ -93,5 +93,23 @@ fn compute_day_a(input: &Vec<Vec<char>>) -> Result<usize> {
 }
 
 fn compute_day_b(input: &Vec<Vec<char>>) -> Result<i32> {
-    todo!()
+    let results = check_for_string(input, "MAS".to_string())?;
+
+    println!("{}", results.len());
+    // Move all pointers to the A in MAS
+    let mut a_points = Vec::new();
+
+    let mut count = 0;
+    for (start, dir) in results {
+        let new_x = start.0 as i32 + dir.0;
+        let new_y = start.1 as i32 + dir.1;
+
+        let new_coord = (new_x, new_y);
+        if a_points.contains(&new_coord) {
+            count += 1;
+        } else {
+            a_points.push(new_coord);
+        }
+    }
+    Ok(count)
 }
