@@ -1,16 +1,16 @@
 use anyhow::Result;
 
 pub fn day02(input: String) -> Result<()> {
-    let day02_parsed_input = parse_day02(input)?;
-    let day02a_total = compute_day02a(&day02_parsed_input)?;
-    println!("Day 02 A Input result: {:?}", day02a_total);
-    let day02b_total = compute_day02b(&day02_parsed_input)?;
-    println!("Day 02 B Input result: {:?}", day02b_total);
+    let day_parsed_input = parse_day(input)?;
+    let day_a_total = compute_day_a(&day_parsed_input)?;
+    println!("Day 02 A Input result: {:?}", day_a_total);
+    let day_b_total = compute_day_b(&day_parsed_input)?;
+    println!("Day 02 B Input result: {:?}", day_b_total);
 
     Ok(())
 }
 
-pub fn parse_day02(input: String) -> Result<Vec<Vec<i32>>> {
+pub fn parse_day(input: String) -> Result<Vec<Vec<i32>>> {
     input
         .lines()
         .map(|x| {
@@ -46,7 +46,7 @@ fn compute_reports(input: &Vec<Vec<i32>>) -> Vec<(i32, i32, i32, &Vec<i32>)> {
     input.into_iter().map(compute_report).collect()
 }
 
-pub fn compute_day02a(input: &Vec<Vec<i32>>) -> Result<i32> {
+fn compute_day_a(input: &Vec<Vec<i32>>) -> Result<i32> {
     Ok(compute_reports(input)
         .into_iter()
         .fold(0, |count, (cnt, asc, dec, _)| {
@@ -84,7 +84,7 @@ fn test_descending(window: &(usize, &[i32])) -> bool {
     !(1..3).contains(&(window.1[0] - window.1[1]))
 }
 
-pub fn compute_day02b(input: &Vec<Vec<i32>>) -> Result<i32> {
+fn compute_day_b(input: &Vec<Vec<i32>>) -> Result<i32> {
     let result: i32 = compute_reports(input)
         .into_iter()
         .map(|(cnt, asc, dec, report)| {

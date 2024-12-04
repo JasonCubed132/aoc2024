@@ -5,16 +5,16 @@ use anyhow::Result;
 use super::list_ops::count_items_in_list;
 
 pub fn day01(input: String) -> Result<()> {
-    let day01_parsed_input = parse_day01(input)?;
-    let day01a_total = compute_day01a(&day01_parsed_input)?;
-    println!("Day 01 A Input result: {:?}", day01a_total);
-    let day01b_total = compute_day01b(&day01_parsed_input)?;
-    println!("Day 01 B Input result: {:?}", day01b_total);
+    let day_parsed_input = parse_day(input)?;
+    let day_a_total = compute_day_a(&day_parsed_input)?;
+    println!("Day 01 A Input result: {:?}", day_a_total);
+    let day_b_total = compute_day_b(&day_parsed_input)?;
+    println!("Day 01 B Input result: {:?}", day_b_total);
 
     Ok(())
 }
 
-pub fn parse_day01(input: String) -> Result<(Vec<i32>, Vec<i32>)> {
+fn parse_day(input: String) -> Result<(Vec<i32>, Vec<i32>)> {
     (input
         .lines()
         .map(|line| line.split_once("   ").unwrap())
@@ -27,7 +27,7 @@ pub fn parse_day01(input: String) -> Result<(Vec<i32>, Vec<i32>)> {
     .map(|x| x.into_iter().unzip())
 }
 
-pub fn compute_day01a(input: &(Vec<i32>, Vec<i32>)) -> Result<i32> {
+fn compute_day_a(input: &(Vec<i32>, Vec<i32>)) -> Result<i32> {
     let (mut list_1, mut list_2) = input.clone();
 
     list_1.sort();
@@ -37,7 +37,7 @@ pub fn compute_day01a(input: &(Vec<i32>, Vec<i32>)) -> Result<i32> {
     Ok(total)
 }
 
-pub fn compute_day01b(input: &(Vec<i32>, Vec<i32>)) -> Result<i32> {
+fn compute_day_b(input: &(Vec<i32>, Vec<i32>)) -> Result<i32> {
     let (list_1, list_2) = input;
 
     let list_2_counts = count_items_in_list(list_2);
