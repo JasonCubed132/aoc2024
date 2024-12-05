@@ -1,3 +1,6 @@
+use core::num;
+use std::cmp::Ordering;
+
 use anyhow::Result;
 
 pub fn day05(input: String) -> Result<()> {
@@ -8,6 +11,37 @@ pub fn day05(input: String) -> Result<()> {
     println!("Day 05 B Input result: {:?}", day_b_total);
 
     Ok(())
+}
+
+#[derive(PartialEq, Copy, Clone)]
+struct Rule {
+    left: u32,
+    right: u32,
+}
+
+struct Num {
+    constraints: Vec<Rule>,
+    inner: u32,
+}
+
+impl PartialOrd for Num {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        for rule in &self.constraints {
+            if self.inner == rule.left && other.inner == rule.right {
+                return Some(Ordering::Less);
+            }
+            if self.inner == rule.right && other.inner == rule.left {
+                return Some(Ordering::Greater);
+            }
+        }
+        None
+    }
+}
+
+impl PartialEq for Num {
+    fn eq(&self, other: &Self) -> bool {
+        self.inner == other.inner
+    }
 }
 
 fn parse_day(input: String) -> Result<(Vec<(u32, u32)>, Vec<Vec<u32>>)> {
@@ -46,47 +80,54 @@ fn parse_day(input: String) -> Result<(Vec<(u32, u32)>, Vec<Vec<u32>>)> {
 
 fn compute_day_a(input: &(Vec<(u32, u32)>, Vec<Vec<u32>>)) -> Result<u32> {
     let (rules, updates) = input;
-
+    let rules_formatted: Vec<Rule> = rules
+        .into_iter()
+        .map(|(left, right)| Rule {
+            left: *left,
+            right: *right,
+        })
+        .collect();
     Ok(updates
         .into_iter()
-        .map(|update| {
-            let res = rules
-                .into_iter()
-                .map(|rule| {
-                    update.into_iter().fold(None, |acc, elem| match acc {
-                        Some(false) => Some(false),
-                        Some(true) => {
-                            if *elem == rule.0 {
-                                Some(false)
-                            } else {
-                                Some(true)
-                            }
-                        }
-                        None => {
-                            if *elem == rule.1 {
-                                Some(true)
-                            } else {
-                                None
-                            }
-                        }
-                    })
+        .map(|vec| {
+            vec.into_iter()
+                .map(|item| Num {
+                    constraints: rules_formatted.clone(),
+                    inner: *item,
                 })
-                .fold(true, |acc, result| match acc {
-                    false => false,
-                    true => match result {
-                        Some(true) => true,
-                        Some(false) => false,
-                        None => true,
-                    },
-                });
-
-            (res, update[(update.len() - 1) / 2])
+                .collect::<Vec<Num>>()
         })
-        .filter(|(res, _)| *res)
-        .map(|(_, val)| val)
+        .filter(|vec| vec.is_sorted())
+        .map(|vec| vec[(vec.len() - 1) / 2].inner)
         .sum())
 }
 
 fn compute_day_b(input: &(Vec<(u32, u32)>, Vec<Vec<u32>>)) -> Result<u32> {
-    todo!();
+    let (rules, updates) = input;
+    let rules_formatted: Vec<Rule> = rules
+        .into_iter()
+        .map(|(left, right)| Rule {
+            left: *left,
+            right: *right,
+        })
+        .collect();
+    // Ok(updates
+    //     .into_iter()
+    //     .map(|vec| {
+    //         vec.into_iter()
+    //             .map(|item| Num {
+    //                 constraints: rules_formatted.clone(),
+    //                 inner: *item,
+    //             })
+    //             .collect::<Vec<Num>>()
+    //     })
+    //     .filter(|vec| !vec.is_sorted())
+    //     .map(|mut vec| {
+    //         vec.sort();
+    //         vec
+    //     })
+    //     .map(|vec| vec[(vec.len() - 1) / 2].inner)
+    //     .sum())
+
+    todo!()
 }
