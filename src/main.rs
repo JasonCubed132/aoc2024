@@ -1,7 +1,10 @@
+use std::str::FromStr;
+
 use anyhow::anyhow;
 use anyhow::Result;
 
 mod file_ops;
+use clap::Parser;
 use file_ops::{read_example_input, read_input};
 mod days;
 use days::day01;
@@ -9,14 +12,38 @@ use days::day02;
 use days::day03;
 use days::day04;
 
+#[derive(Debug, Clone)]
 enum InputType {
     MAIN,
     EXAMPLE,
 }
 
+impl FromStr for InputType {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self> {
+        match s {
+            "main" => Ok(Self::MAIN),
+            "example" => Ok(Self::EXAMPLE),
+            x => Err(anyhow!("Unable to construct InputType from {x}")),
+        }
+    }
+}
+
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
+struct Args {
+    #[arg(short, long)]
+    input_type: InputType,
+
+    #[arg(short, long)]
+    day: i32,
+}
+
 fn main() -> Result<()> {
-    let day = 4;
-    let input_type = InputType::EXAMPLE;
+    let args = Args::parse();
+    let day = args.day;
+    let input_type = args.input_type;
 
     let day_input = match input_type {
         InputType::EXAMPLE => read_example_input(day),
