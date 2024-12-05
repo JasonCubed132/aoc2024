@@ -5,6 +5,7 @@ use anyhow::Result;
 
 mod file_ops;
 use clap::Parser;
+use days::day05;
 use file_ops::{read_example_input, read_input};
 mod days;
 use days::day01;
@@ -55,6 +56,7 @@ fn main() -> Result<()> {
         2 => day02(day_input),
         3 => day03(day_input),
         4 => day04(day_input),
+        5 => day05(day_input),
         _ => Err(anyhow!("Day not found!")),
     }
 }
