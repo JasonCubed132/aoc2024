@@ -97,21 +97,44 @@ fn compute_day_a(input: &Vec<Vec<char>>) -> Result<usize> {
 fn compute_day_b(input: &Vec<Vec<char>>) -> Result<usize> {
     let results = check_for_string(input, "MAS".to_string())?;
 
-    println!("{}", results.len());
+    let mut display_grid = Vec::new();
+    for i in 0..input.len() {
+        let mut display_row = Vec::new();
+        for _ in 0..input[i].len() {
+            display_row.push('-');
+        }
+        display_grid.push(display_row);
+    }
+
+    for ((start_x, start_y), (dir_x, dir_y)) in results.clone() {
+        for i in 0..3 {
+            let new_x = start_x as i32 + i * dir_x;
+            let new_y = start_y as i32 + i * dir_y;
+            let x = new_x as usize;
+            let y = new_y as usize;
+            display_grid[y][x] = input[y][x];
+        }
+    }
+
     // Move all pointers to the A in MAS
     let mut a_points = HashMap::new();
 
     for (start, dir) in results {
+        // Skip any that aren't on the diagonals.
+        if dir.0.abs() != 1 || dir.1.abs() != 1 {
+            continue;
+        }
+
         let new_x = start.0 as i32 + dir.0;
         let new_y = start.1 as i32 + dir.1;
 
         let new_coord = (new_x, new_y);
-        println!("{:?}", new_coord);
         a_points
             .entry(new_coord)
             .and_modify(|e| *e += 1)
             .or_insert(1);
     }
+
     let count = a_points
         .values()
         .filter(|x| **x > 1)
