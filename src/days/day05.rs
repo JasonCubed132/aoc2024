@@ -46,9 +46,45 @@ fn parse_day(input: String) -> Result<(Vec<(u32, u32)>, Vec<Vec<u32>>)> {
 
 fn compute_day_a(input: &(Vec<(u32, u32)>, Vec<Vec<u32>>)) -> Result<u32> {
     let (rules, updates) = input;
-    println!("{:?}", rules);
-    println!("{:?}", updates);
-    todo!();
+
+    Ok(updates
+        .into_iter()
+        .map(|update| {
+            let res = rules
+                .into_iter()
+                .map(|rule| {
+                    update.into_iter().fold(None, |acc, elem| match acc {
+                        Some(false) => Some(false),
+                        Some(true) => {
+                            if *elem == rule.0 {
+                                Some(false)
+                            } else {
+                                Some(true)
+                            }
+                        }
+                        None => {
+                            if *elem == rule.1 {
+                                Some(true)
+                            } else {
+                                None
+                            }
+                        }
+                    })
+                })
+                .fold(true, |acc, result| match acc {
+                    false => false,
+                    true => match result {
+                        Some(true) => true,
+                        Some(false) => false,
+                        None => true,
+                    },
+                });
+
+            (res, update[(update.len() - 1) / 2])
+        })
+        .filter(|(res, _)| *res)
+        .map(|(_, val)| val)
+        .sum())
 }
 
 fn compute_day_b(input: &(Vec<(u32, u32)>, Vec<Vec<u32>>)) -> Result<u32> {
