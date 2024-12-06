@@ -44,6 +44,14 @@ impl PartialEq for Num {
     }
 }
 
+impl Ord for Num {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.partial_cmp(other).unwrap()
+    }
+}
+
+impl Eq for Num {}
+
 fn parse_day(input: String) -> Result<(Vec<(u32, u32)>, Vec<Vec<u32>>)> {
     let (rules_str, updates_str) = input.split_once("\r\n\r\n").unwrap();
 
@@ -111,23 +119,21 @@ fn compute_day_b(input: &(Vec<(u32, u32)>, Vec<Vec<u32>>)) -> Result<u32> {
             right: *right,
         })
         .collect();
-    // Ok(updates
-    //     .into_iter()
-    //     .map(|vec| {
-    //         vec.into_iter()
-    //             .map(|item| Num {
-    //                 constraints: rules_formatted.clone(),
-    //                 inner: *item,
-    //             })
-    //             .collect::<Vec<Num>>()
-    //     })
-    //     .filter(|vec| !vec.is_sorted())
-    //     .map(|mut vec| {
-    //         vec.sort();
-    //         vec
-    //     })
-    //     .map(|vec| vec[(vec.len() - 1) / 2].inner)
-    //     .sum())
-
-    todo!()
+    Ok(updates
+        .into_iter()
+        .map(|vec| {
+            vec.into_iter()
+                .map(|item| Num {
+                    constraints: rules_formatted.clone(),
+                    inner: *item,
+                })
+                .collect::<Vec<Num>>()
+        })
+        .filter(|vec| !vec.is_sorted())
+        .map(|mut vec| {
+            vec.sort();
+            vec
+        })
+        .map(|vec| vec[(vec.len() - 1) / 2].inner)
+        .sum())
 }
