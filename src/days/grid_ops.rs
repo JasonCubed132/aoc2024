@@ -1,5 +1,6 @@
 use anyhow::{anyhow, Result};
 
+#[derive(Clone)]
 pub struct Cell<T> {
     inner: T,
 }
@@ -10,7 +11,7 @@ impl<T> Cell<T> {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Coord {
     x: usize,
     y: usize,
@@ -39,13 +40,30 @@ impl Coord {
     }
 }
 
+#[derive(Clone)]
 pub struct Grid<T> {
     grid: Vec<Vec<Cell<T>>>,
 }
 
-impl<T: Clone> Grid<T> {
+impl<T: Clone + PartialEq> Grid<T> {
     pub fn new(grid: Vec<Vec<Cell<T>>>) -> Self {
         Self { grid: grid }
+    }
+
+    pub fn set_cell_contents(&mut self, pos: &Coord, inner: T) -> Result<()> {
+        if pos.y >= self.grid.len() {
+            return Err(anyhow!("{:?} exceeds number of rows", pos.y));
+        }
+
+        let row = &self.grid[pos.y];
+
+        if pos.x >= row.len() {
+            return Err(anyhow!("{:?} exceeds the number of columns", pos.x));
+        }
+
+        self.grid[pos.y][pos.x] = Cell::new(inner);
+
+        Ok(())
     }
 
     pub fn get_cell_contents(&self, pos: &Coord) -> Result<T> {
@@ -63,7 +81,7 @@ impl<T: Clone> Grid<T> {
     }
 
     pub fn get_projection_iter(
-        self,
+        &self,
         start: Coord,
         x_delta: i32,
         y_delta: i32,
@@ -88,5 +106,17 @@ impl<T: Clone> Grid<T> {
         }
 
         projection.into_iter()
+    }
+
+    pub fn find_first(&self, cell_contents: T) -> Result<Option<Coord>> {
+        for y in 0..self.grid.len() {
+            for x in 0..self.grid[y].len() {
+                let coord = Coord::new(x, y, self.grid[y].len(), self.grid.len());
+                if self.get_cell_contents(&coord)? == cell_contents {
+                    return Ok(Some(coord));
+                }
+            }
+        }
+        Ok(None)
     }
 }
