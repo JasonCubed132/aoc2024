@@ -82,12 +82,12 @@ impl<T: Clone + PartialEq> Grid<T> {
 
     pub fn get_projection_iter(
         &self,
-        start: Coord,
+        start: &Coord,
         x_delta: i32,
         y_delta: i32,
     ) -> impl Iterator<Item = (Coord, T)> {
         let mut projection = Vec::new();
-        let mut current = start;
+        let mut current = start.clone();
 
         loop {
             match self.get_cell_contents(&current) {

@@ -86,6 +86,7 @@ fn parse_day(input: String) -> Result<Grid<SpaceContents>> {
 
 fn compute_day_a(input: &Grid<SpaceContents>) -> Result<usize> {
     let mut grid = input.clone();
+
     let mut direction = Direction::UP;
     let mut coord = grid.find_first(SpaceContents::GUARD)?.unwrap();
     grid.set_cell_contents(&coord, SpaceContents::EMPTY)?;
@@ -95,27 +96,27 @@ fn compute_day_a(input: &Grid<SpaceContents>) -> Result<usize> {
     loop {
         let dir = direction.get_delta();
         let projection: Vec<(Coord, SpaceContents)> = grid
-            .get_projection_iter(coord.clone(), dir.0, dir.1)
+            .get_projection_iter(&coord, dir.0, dir.1)
             .skip(1)
             .collect();
         let projection_len = projection.clone().len();
 
         let path: Vec<Coord> = projection
-            .iter()
-            .take_while(|item| item.1 == SpaceContents::EMPTY)
-            .map(|item| item.0.clone())
+            .into_iter()
+            .take_while(|(_, contents)| contents == &SpaceContents::EMPTY)
+            .map(|(coord, _)| coord)
             .map(|item| {
                 visited_coords.insert(item.clone());
                 item
             })
             .collect();
-        let path_len = path.clone().len();
+        let path_len = path.len();
 
         if path_len == projection_len {
             break;
         }
 
-        match path.last().cloned() {
+        match path.into_iter().last() {
             Some(new) => {
                 coord = new;
             }
