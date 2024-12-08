@@ -1,3 +1,4 @@
+use std::fmt::Write as _;
 use std::str::FromStr;
 
 use anyhow::{anyhow, Result};
@@ -43,6 +44,7 @@ impl FromStr for Equation {
 enum Operator {
     Add,
     Multiply,
+    Concatenate,
 }
 
 impl Operator {
@@ -50,6 +52,11 @@ impl Operator {
         match self {
             Self::Add => left + right,
             Self::Multiply => left * right,
+            Self::Concatenate => {
+                let mut str = String::new();
+                let _ = write!(&mut str, "{}{}", left, right);
+                str.parse::<i64>().unwrap()
+            }
         }
     }
 }
@@ -59,9 +66,9 @@ impl Equation {
         self.target
     }
 
-    fn attempt_resolve(&self) -> bool {
+    fn attempt_resolve(&self, operator_types: &Vec<Operator>) -> bool {
         let count = self.params.len();
-        let op_sequences = self.gen_permutations(count - 1);
+        let op_sequences = self.gen_permutations(count - 1, operator_types);
 
         for op_sequence in op_sequences {
             let mut current = self.params[0];
@@ -79,29 +86,30 @@ impl Equation {
         false
     }
 
-    fn gen_permutations(&self, len: usize) -> Vec<Vec<Operator>> {
+    fn gen_permutations(&self, len: usize, operator_types: &Vec<Operator>) -> Vec<Vec<Operator>> {
         if len == 0 {
             Vec::new()
         } else if len == 1 {
             let mut vec = Vec::new();
-            vec.push([Operator::Add].to_vec());
-            vec.push([Operator::Multiply].to_vec());
+            for op_type in operator_types {
+                vec.push([op_type.clone()].to_vec());
+                vec.push([op_type.clone()].to_vec());
+            }
             vec
         } else {
             let current = if len > 1 {
-                self.gen_permutations(len - 1)
+                self.gen_permutations(len - 1, operator_types)
             } else {
                 Vec::new()
             };
 
             let mut new = Vec::new();
             for entry in current {
-                let mut tmp = entry.clone();
-                tmp.push(Operator::Add);
-                new.push(tmp);
-                tmp = entry.clone();
-                tmp.push(Operator::Multiply);
-                new.push(tmp);
+                for op_type in operator_types {
+                    let mut tmp = entry.clone();
+                    tmp.push(op_type.clone());
+                    new.push(tmp);
+                }
             }
 
             new
@@ -116,13 +124,21 @@ fn parse_day(input: String) -> Result<Vec<Equation>> {
 fn compute_day_a(input: &Vec<Equation>) -> Result<i64> {
     let mut total = 0;
     for equation in input {
-        if equation.attempt_resolve() {
+        if equation.attempt_resolve(&[Operator::Add, Operator::Multiply].to_vec()) {
             total += equation.get_target();
         }
     }
     Ok(total)
 }
 
-fn compute_day_b(_input: &Vec<Equation>) -> Result<i64> {
-    todo!();
+fn compute_day_b(input: &Vec<Equation>) -> Result<i64> {
+    let mut total = 0;
+    for equation in input {
+        if equation
+            .attempt_resolve(&[Operator::Add, Operator::Multiply, Operator::Concatenate].to_vec())
+        {
+            total += equation.get_target();
+        }
+    }
+    Ok(total)
 }
