@@ -5,6 +5,7 @@ mod day04;
 mod day05;
 mod day06;
 mod day07;
+mod day08;
 mod grid_ops;
 mod list_ops;
 
@@ -15,3 +16,4 @@ pub use day04::day04;
 pub use day05::day05;
 pub use day06::day06;
 pub use day07::day07;
+pub use day08::day08;

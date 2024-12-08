@@ -5,15 +5,16 @@ use anyhow::Result;
 
 mod file_ops;
 use clap::Parser;
-use days::day05;
-use days::day06;
-use file_ops::{read_example_input, read_input};
-mod days;
 use days::day01;
 use days::day02;
 use days::day03;
 use days::day04;
+use days::day05;
+use days::day06;
 use days::day07;
+use days::day08;
+use file_ops::{read_example_input, read_input};
+mod days;
 
 #[derive(Debug, Clone)]
 enum InputType {
@@ -61,6 +62,7 @@ fn main() -> Result<()> {
         5 => day05(day_input),
         6 => day06(day_input),
         7 => day07(day_input),
+        8 => day08(day_input),
         _ => Err(anyhow!("Day not found!")),
     }
 }

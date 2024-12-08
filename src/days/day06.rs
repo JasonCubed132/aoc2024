@@ -4,7 +4,7 @@ use anyhow::{anyhow, Result};
 
 use crate::days::grid_ops::{Cell, Coord};
 
-use super::grid_ops::Grid;
+use super::grid_ops::{Delta, Grid};
 
 pub fn day06(input: String) -> Result<()> {
     let day_parsed_input = parse_day(input)?;
@@ -32,12 +32,12 @@ enum Direction {
 }
 
 impl Direction {
-    pub fn get_delta(&self) -> (i32, i32) {
+    pub fn get_delta(&self) -> Delta {
         match self {
-            Self::UP => (0, -1),
-            Self::RIGHT => (1, 0),
-            Self::DOWN => (0, 1),
-            Self::LEFT => (-1, 0),
+            Self::UP => Delta::new(0, -1),
+            Self::RIGHT => Delta::new(1, 0),
+            Self::DOWN => Delta::new(0, 1),
+            Self::LEFT => Delta::new(-1, 0),
         }
     }
     pub fn turn_right(self) -> Self {
@@ -77,7 +77,7 @@ fn make_grid_from_string(input: String) -> Result<Grid<SpaceContents>> {
                 .collect::<Result<Vec<Cell<SpaceContents>>>>()
         })
         .collect::<Result<Vec<Vec<Cell<SpaceContents>>>>>()?;
-    Ok(Grid::new(res))
+    Ok(Grid::new(res)?)
 }
 
 fn parse_day(input: String) -> Result<Grid<SpaceContents>> {
@@ -95,10 +95,8 @@ fn compute_day_a(input: &Grid<SpaceContents>) -> Result<usize> {
     visited_coords.insert(coord.clone());
     loop {
         let dir = direction.get_delta();
-        let projection: Vec<(Coord, SpaceContents)> = grid
-            .get_projection_iter(&coord, dir.0, dir.1)
-            .skip(1)
-            .collect();
+        let projection: Vec<(Coord, SpaceContents)> =
+            grid.get_projection_iter(&coord, &dir).skip(1).collect();
         let projection_len = projection.clone().len();
 
         let path: Vec<Coord> = projection
