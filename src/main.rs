@@ -13,6 +13,7 @@ use days::day01;
 use days::day02;
 use days::day03;
 use days::day04;
+use days::day07;
 
 #[derive(Debug, Clone)]
 enum InputType {
@@ -59,6 +60,7 @@ fn main() -> Result<()> {
         4 => day04(day_input),
         5 => day05(day_input),
         6 => day06(day_input),
+        7 => day07(day_input),
         _ => Err(anyhow!("Day not found!")),
     }
 }

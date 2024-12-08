@@ -127,6 +127,6 @@ fn compute_day_a(input: &Grid<SpaceContents>) -> Result<usize> {
     Ok(visited_coords.len())
 }
 
-fn compute_day_b(input: &Grid<SpaceContents>) -> Result<i32> {
+fn compute_day_b(_input: &Grid<SpaceContents>) -> Result<i32> {
     todo!();
 }
