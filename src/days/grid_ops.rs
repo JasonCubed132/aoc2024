@@ -1,23 +1,8 @@
-use std::ops;
+use std::{fmt::Display, hash::Hash, ops};
 
 use anyhow::{anyhow, Result};
 
-#[derive(Clone)]
-pub struct Cell<T> {
-    inner: T,
-}
-
-impl<T> Cell<T> {
-    pub fn new(item: T) -> Self {
-        Self { inner: item }
-    }
-
-    pub fn get(&self) -> &T {
-        &self.inner
-    }
-}
-
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct Delta {
     x: i32,
     y: i32,
@@ -35,12 +20,8 @@ impl Delta {
     pub fn get_y(&self) -> i32 {
         self.y
     }
-}
 
-impl ops::Neg for Delta {
-    type Output = Self;
-
-    fn neg(self) -> Self::Output {
+    pub fn get_neg(&self) -> Self {
         Self {
             x: -self.get_x(),
             y: -self.get_y(),
@@ -48,7 +29,15 @@ impl ops::Neg for Delta {
     }
 }
 
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+impl ops::Neg for Delta {
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        self.get_neg()
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq)]
 pub struct Coord {
     x: usize,
     y: usize,
@@ -69,12 +58,25 @@ impl Coord {
         self.y
     }
 
+    pub fn get_delta(&self, rhs: &Self) -> Delta {
+        Delta::new(
+            self.get_x() as i32 - rhs.get_x() as i32,
+            self.get_y() as i32 - rhs.get_y() as i32,
+        )
+    }
+
     pub fn add_delta(self, delta: &Delta) -> Result<Self> {
         let new_x = self.x as i32 + delta.get_x();
         let new_y = self.y as i32 + delta.get_y();
 
-        if new_x > self.max_x as i32 || new_y > self.max_y as i32 {
-            Err(anyhow!("New coords out of bounds"))
+        if new_x < 0 || new_x > self.max_x as i32 || new_y < 0 || new_y > self.max_y as i32 {
+            Err(anyhow!(
+                "New coords out of bounds, x: {}, y: {}, max_x: {}, max_y: {}",
+                new_x,
+                new_y,
+                self.x,
+                self.y
+            ))
         } else {
             Ok(Self {
                 x: new_x as usize,
@@ -85,11 +87,16 @@ impl Coord {
         }
     }
 
-    pub fn get_delta(&self, other: &Self) -> Delta {
-        Delta::new(
-            other.get_x() as i32 - self.get_x() as i32,
-            other.get_y() as i32 - self.get_y() as i32,
-        )
+    pub fn sub_delta(self, delta: &Delta) -> Result<Self> {
+        self.add_delta(&delta.get_neg())
+    }
+}
+
+impl ops::Sub<Coord> for Coord {
+    type Output = Delta;
+
+    fn sub(self, rhs: Coord) -> Self::Output {
+        self.get_delta(&rhs)
     }
 }
 
@@ -105,7 +112,44 @@ impl ops::Sub<Delta> for Coord {
     type Output = Self;
 
     fn sub(self, rhs: Delta) -> Self::Output {
-        self + (-rhs)
+        self.sub_delta(&rhs).unwrap()
+    }
+}
+
+impl Display for Coord {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "({},{})", self.x, self.y)
+    }
+}
+
+impl PartialEq for Coord {
+    fn eq(&self, other: &Self) -> bool {
+        self.x == other.x
+            && self.y == other.y
+            && self.max_x == other.max_x
+            && self.max_y == other.max_y
+    }
+}
+
+impl Hash for Coord {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.x.hash(state);
+        self.y.hash(state);
+    }
+}
+
+#[derive(Clone)]
+pub struct Cell<T> {
+    inner: T,
+}
+
+impl<T> Cell<T> {
+    pub fn new(item: T) -> Self {
+        Self { inner: item }
+    }
+
+    pub fn get(&self) -> &T {
+        &self.inner
     }
 }
 
@@ -141,6 +185,21 @@ impl<T: Clone + PartialEq> Grid<T> {
             num_rows: num_rows,
             num_cols: num_cols,
         })
+    }
+
+    pub fn get_grid(&self) -> Vec<Vec<&T>> {
+        self.grid
+            .iter()
+            .map(|row| row.iter().map(|cell| cell.get()).collect())
+            .collect()
+    }
+
+    pub fn get_num_rows(&self) -> usize {
+        self.num_rows
+    }
+
+    pub fn get_num_cols(&self) -> usize {
+        self.num_cols
     }
 
     pub fn set_cell_contents(&mut self, pos: &Coord, inner: T) -> Result<()> {
@@ -200,20 +259,5 @@ impl<T: Clone + PartialEq> Grid<T> {
             }
         }
         Ok(None)
-    }
-
-    pub fn get_grid(&self) -> Vec<Vec<&T>> {
-        self.grid
-            .iter()
-            .map(|row| row.iter().map(|cell| cell.get()).collect())
-            .collect()
-    }
-
-    pub fn get_num_rows(&self) -> usize {
-        self.num_rows
-    }
-
-    pub fn get_num_cols(&self) -> usize {
-        self.num_cols
     }
 }

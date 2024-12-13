@@ -30,20 +30,21 @@ fn parse_day(input: String) -> Result<Grid<char>> {
 }
 
 fn compute_day_a(input: &Grid<char>) -> Result<usize> {
-    let used_cells = input
-        .get_grid()
-        .iter()
-        .flatten()
-        .fold(HashSet::new(), |mut acc, item| {
-            if **item != '.' {
-                acc.insert(**item);
-            }
-            acc
-        });
+    let frequencies_present =
+        input
+            .get_grid()
+            .iter()
+            .flatten()
+            .fold(HashSet::new(), |mut acc, item| {
+                if **item != '.' {
+                    acc.insert(**item);
+                }
+                acc
+            });
 
     let mut all_antinodes = HashSet::new();
 
-    for frequency in used_cells {
+    for frequency in frequencies_present {
         let mut coords = Vec::new();
         for (y, row) in input.get_grid().iter().enumerate() {
             for (x, cell) in row.iter().enumerate() {
@@ -53,24 +54,56 @@ fn compute_day_a(input: &Grid<char>) -> Result<usize> {
             }
         }
 
-        println!("Frequency {:?} Coords {:?}", frequency, coords);
+        println!(
+            "Frequency {:?} Coords {}",
+            frequency,
+            coords
+                .iter()
+                .map(|item| item.to_string())
+                .collect::<Vec<_>>()
+                .join(",")
+        );
 
         let mut anti_nodes = HashSet::new();
 
         for i in 0..coords.len() {
             let coord_1 = &coords[i];
-            for j in i..coords.len() {
+            for j in i + 1..coords.len() {
                 let coord_2 = &coords[j];
 
-                let delta = coord_1.get_delta(coord_2);
+                let delta = *coord_2 - *coord_1;
 
-                let coord_a = coord_1.clone() + delta.clone();
-                let coord_b = coord_2.clone() - delta.clone();
+                let coord_a = coord_1.add_delta(&delta.get_neg());
+                let coord_b = coord_2.add_delta(&delta);
 
-                println!("{:?} {:?}", coord_a, coord_b);
+                println!(
+                    "{} {} {} {} {} {}",
+                    i,
+                    j,
+                    coord_a
+                        .as_ref()
+                        .and_then(|int| Ok(int.to_string()))
+                        .unwrap_or("None".to_string()),
+                    coord_1,
+                    coord_2,
+                    coord_b
+                        .as_ref()
+                        .and_then(|int| Ok(int.to_string()))
+                        .unwrap_or("None".to_string())
+                );
 
-                anti_nodes.insert(coord_a);
-                anti_nodes.insert(coord_b);
+                match coord_a {
+                    Ok(coord) => {
+                        anti_nodes.insert(coord);
+                    }
+                    Err(_) => {}
+                }
+                match coord_b {
+                    Ok(coord) => {
+                        anti_nodes.insert(coord);
+                    }
+                    Err(_) => {}
+                }
             }
         }
 
@@ -82,6 +115,6 @@ fn compute_day_a(input: &Grid<char>) -> Result<usize> {
     Ok(all_antinodes.len())
 }
 
-fn compute_day_b(input: &Grid<char>) -> Result<u32> {
+fn compute_day_b(_input: &Grid<char>) -> Result<u32> {
     todo!();
 }
