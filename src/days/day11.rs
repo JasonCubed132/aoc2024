@@ -1,8 +1,10 @@
-use std::str::FromStr;
+use std::{collections::HashMap, fmt::Display, str::FromStr};
 
 use anyhow::Result;
 
-#[derive(Clone)]
+use super::list_ops::count_items_in_list;
+
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]
 struct Stone {
     num: u64,
 }
@@ -17,36 +19,35 @@ impl FromStr for Stone {
     }
 }
 
-impl Stone {
-    fn new(num: u64) -> Self {
-        Self { num }
+impl Display for Stone {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.num)
     }
+}
 
-    fn advance_state(self) -> Result<Vec<Self>> {
+impl Stone {
+    fn advance_state(&mut self) -> Result<Option<Self>> {
         if self.num == 0 {
-            let mut result = Vec::new();
-            result.push(Stone::new(1));
-            Ok(result)
+            self.num = 1;
+            Ok(None)
         } else if self.num.to_string().len() % 2 == 0 {
             let num_str = self.num.to_string();
             let num_str_len = num_str.len();
             let (left, right) = num_str.split_at(num_str_len / 2);
 
-            let mut result = Vec::new();
-            result.push(Stone::from_str(left)?);
-            result.push(Stone::from_str(right)?);
-            Ok(result)
+            self.num = left.parse::<u64>()?;
+            let new_stone = Stone::from_str(right)?;
+            Ok(Some(new_stone))
         } else {
-            let mut result = Vec::new();
-            result.push(Stone::new(self.num * 2024));
-            Ok(result)
+            self.num *= 2024;
+            Ok(None)
         }
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 struct PlutonianPebbles {
-    stones: Vec<Stone>,
+    counts: HashMap<Stone, u64>,
 }
 
 impl FromStr for PlutonianPebbles {
@@ -57,24 +58,65 @@ impl FromStr for PlutonianPebbles {
             .split(' ')
             .map(|num| Stone::from_str(num))
             .collect::<Result<Vec<_>>>()?;
-        Ok(Self { stones })
+        Ok(Self::new(stones))
+    }
+}
+
+impl Display for PlutonianPebbles {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let stones = self
+            .counts
+            .iter()
+            .map(|(stone, count)| format!("({}: {}", stone, count))
+            .collect::<Vec<_>>()
+            .join(" ");
+        write!(f, "{}", stones)
     }
 }
 
 impl PlutonianPebbles {
-    fn advance_state(self) -> Result<Self> {
-        let mut new_stones = Vec::new();
-
-        for stone in self.stones {
-            let mut result = stone.advance_state()?;
-            new_stones.append(&mut result);
+    fn new(stones: Vec<Stone>) -> Self {
+        let counts = count_items_in_list(&stones);
+        let mut new_counts = HashMap::new();
+        for (&stone, count) in counts.into_iter() {
+            new_counts.insert(stone, count as u64);
         }
-
-        Ok(Self { stones: new_stones })
+        Self { counts: new_counts }
     }
 
-    fn get_num_stones(self) -> usize {
-        self.stones.len()
+    fn advance_state(&mut self) -> Result<()> {
+        let mut new_counts = HashMap::new();
+        for (stone, count) in &self.counts {
+            let mut cloned_stone = stone.clone();
+
+            match cloned_stone.advance_state()? {
+                Some(new_stone) => {
+                    new_counts
+                        .entry(new_stone)
+                        .and_modify(|current: &mut u64| *current += *count)
+                        .or_insert(*count);
+                }
+                None => {}
+            }
+
+            new_counts
+                .entry(cloned_stone)
+                .and_modify(|current| *current += count)
+                .or_insert(*count);
+        }
+
+        self.counts = new_counts;
+
+        Ok(())
+    }
+
+    fn get_num_stones(&self) -> u64 {
+        let mut total = 0;
+        for (_, count) in &self.counts {
+            total += count;
+        }
+
+        total as u64
     }
 }
 
@@ -92,15 +134,22 @@ fn parse_day(input: String) -> Result<PlutonianPebbles> {
     PlutonianPebbles::from_str(&input)
 }
 
-fn compute_day_a(input: &PlutonianPebbles) -> Result<usize> {
+fn compute_day_a(input: &PlutonianPebbles) -> Result<u64> {
     let mut current_state = input.clone();
-    for _ in 0..25 {
-        current_state = current_state.advance_state()?;
+    for i in 0..25 {
+        current_state.advance_state()?;
+        println!("Iteration {i}");
     }
 
     Ok(current_state.get_num_stones())
 }
 
 fn compute_day_b(input: &PlutonianPebbles) -> Result<u64> {
-    todo!();
+    let mut current_state = input.clone();
+    for i in 0..75 {
+        current_state.advance_state()?;
+        println!("Iteration {i}");
+    }
+
+    Ok(current_state.get_num_stones())
 }
