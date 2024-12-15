@@ -1,4 +1,4 @@
-use std::{fmt::Display, hash::Hash, ops};
+use std::{collections::HashSet, fmt::Display, hash::Hash, iter::Map, ops};
 
 use anyhow::{anyhow, Result};
 
@@ -160,7 +160,7 @@ pub struct Grid<T> {
     num_cols: usize,
 }
 
-impl<T: Clone + PartialEq> Grid<T> {
+impl<T: Clone + PartialEq + Eq + Hash> Grid<T> {
     pub fn new(grid: Vec<Vec<Cell<T>>>) -> Result<Self> {
         let num_rows = grid.len();
 
@@ -267,5 +267,31 @@ impl<T: Clone + PartialEq> Grid<T> {
         }
 
         Ok(output)
+    }
+
+    pub fn get_all_elements_present(&self) -> Vec<T> {
+        let elements_present = self
+            .grid
+            .iter()
+            .fold(HashSet::new(), |acc: HashSet<T>, line| {
+                line.iter().fold(acc, |mut inner_acc, cell| {
+                    inner_acc.insert(cell.get().clone());
+                    inner_acc
+                })
+            });
+
+        elements_present.into_iter().collect()
+    }
+
+    pub fn get_all_coords(&self) -> Vec<Coord> {
+        let mut output = Vec::new();
+
+        for (x, row) in self.grid.iter().enumerate() {
+            for (y, _) in row.iter().enumerate() {
+                output.push(Coord::new(x, y, self.num_cols, self.num_rows));
+            }
+        }
+
+        output
     }
 }

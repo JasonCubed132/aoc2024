@@ -16,7 +16,7 @@ pub fn day06(input: String) -> Result<()> {
     Ok(())
 }
 
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, PartialEq, Eq, Hash, Debug)]
 enum SpaceContents {
     EMPTY,
     OBSTACLE,
