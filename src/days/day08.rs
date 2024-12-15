@@ -78,18 +78,7 @@ fn compute_day_a(input: &Grid<char>) -> Result<usize> {
 
                 println!(
                     "{} {} {} {} {} {}",
-                    i,
-                    j,
-                    coord_a
-                        .as_ref()
-                        .and_then(|int| Ok(int.to_string()))
-                        .unwrap_or("None".to_string()),
-                    coord_1,
-                    coord_2,
-                    coord_b
-                        .as_ref()
-                        .and_then(|int| Ok(int.to_string()))
-                        .unwrap_or("None".to_string())
+                    i, j, coord_a, coord_1, coord_2, coord_b
                 );
 
                 match coord_a {

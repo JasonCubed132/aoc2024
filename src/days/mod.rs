@@ -7,6 +7,7 @@ mod day06;
 mod day07;
 mod day08;
 mod day09;
+mod generic_ops;
 mod grid_ops;
 mod list_ops;
 
