@@ -15,6 +15,7 @@ use days::day07;
 use days::day08;
 use days::day09;
 use days::day10;
+use days::day11;
 use file_ops::{read_example_input, read_input};
 mod days;
 
@@ -67,6 +68,7 @@ fn main() -> Result<()> {
         08 => day08(day_input),
         09 => day09(day_input),
         10 => day10(day_input),
+        11 => day11(day_input),
         _ => Err(anyhow!("Day not found!")),
     }
 }
