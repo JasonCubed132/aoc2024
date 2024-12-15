@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 use anyhow::Result;
 
-use crate::days::grid_ops::Coord;
+use crate::days::{generic_ops::DisplayResult, grid_ops::Coord};
 
 use super::grid_ops::{Cell, Grid};
 
@@ -78,7 +78,12 @@ fn compute_day_a(input: &Grid<char>) -> Result<usize> {
 
                 println!(
                     "{} {} {} {} {} {}",
-                    i, j, coord_a, coord_1, coord_2, coord_b
+                    i,
+                    j,
+                    DisplayResult::new(&coord_a),
+                    coord_1,
+                    coord_2,
+                    DisplayResult::new(&coord_b)
                 );
 
                 match coord_a {
