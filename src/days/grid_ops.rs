@@ -69,7 +69,7 @@ impl Coord {
         let new_x = self.x as i32 + delta.get_x();
         let new_y = self.y as i32 + delta.get_y();
 
-        if new_x < 0 || new_x > self.max_x as i32 || new_y < 0 || new_y > self.max_y as i32 {
+        if new_x < 0 || new_x >= self.max_x as i32 || new_y < 0 || new_y >= self.max_y as i32 {
             Err(anyhow!(
                 "New coords out of bounds, x: {}, y: {}, max_x: {}, max_y: {}",
                 new_x,
@@ -250,14 +250,22 @@ impl<T: Clone + PartialEq> Grid<T> {
     }
 
     pub fn find_first(&self, cell_contents: T) -> Result<Option<Coord>> {
+        let all = self.find_all(cell_contents)?;
+        Ok(all.get(0).copied())
+    }
+
+    pub fn find_all(&self, cell_contents: T) -> Result<Vec<Coord>> {
+        let mut output = Vec::new();
+
         for y in 0..self.num_rows {
             for x in 0..self.num_cols {
                 let coord = Coord::new(x, y, self.num_cols, self.num_rows);
                 if self.get_cell_contents(&coord)? == cell_contents {
-                    return Ok(Some(coord));
+                    output.push(coord);
                 }
             }
         }
-        Ok(None)
+
+        Ok(output)
     }
 }
