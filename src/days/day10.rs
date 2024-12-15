@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::{collections::HashSet, hash::Hash};
 
 use anyhow::Result;
 
@@ -28,12 +28,12 @@ fn parse_day(input: String) -> Result<Grid<u32>> {
     Grid::new(inner)
 }
 
-fn spawn_searcher(grid: &Grid<u32>, coord: Coord, target_value: u32) -> Result<HashSet<Coord>> {
+fn spawn_searcher(grid: &Grid<u32>, coord: Coord, target_value: u32) -> Result<Vec<Coord>> {
     let current_value = grid.get_cell_contents(&coord)?;
 
     if current_value == target_value {
-        let mut result = HashSet::new();
-        result.insert(coord);
+        let mut result = Vec::new();
+        result.push(coord);
         return Ok(result);
     }
 
@@ -46,7 +46,7 @@ fn spawn_searcher(grid: &Grid<u32>, coord: Coord, target_value: u32) -> Result<H
         Delta::new(0, -1),
     ];
 
-    let mut all_nine_coords = HashSet::new();
+    let mut all_nine_coords = Vec::new();
 
     for delta in deltas {
         match coord.add_delta(&delta) {
@@ -59,7 +59,7 @@ fn spawn_searcher(grid: &Grid<u32>, coord: Coord, target_value: u32) -> Result<H
 
                 let node_nine_coords = spawn_searcher(grid, new_coord, target_value)?;
                 for nine_coord in node_nine_coords {
-                    all_nine_coords.insert(nine_coord);
+                    all_nine_coords.push(nine_coord);
                 }
             }
             Err(_) => continue,
@@ -76,17 +76,30 @@ fn compute_day_a(input: &Grid<u32>) -> Result<usize> {
     let mut total = 0;
 
     for zero in zeroes {
-        println!("Zero detected at {:?}", zero);
-        let node_nine_coords: HashSet<Coord> = spawn_searcher(input, zero, 9)?;
+        // println!("Zero detected at {:?}", zero);
+        let node_nine_coords: Vec<Coord> = spawn_searcher(input, zero, 9)?;
 
-        println!("Result {}", node_nine_coords.len());
+        let without_duplicates: HashSet<Coord> = HashSet::from_iter(node_nine_coords.into_iter());
+        // println!("Result {}", without_duplicates.len());
 
-        total += node_nine_coords.len();
+        total += without_duplicates.len();
     }
 
     Ok(total)
 }
 
-fn compute_day_b(input: &Grid<u32>) -> Result<u32> {
-    todo!();
+fn compute_day_b(input: &Grid<u32>) -> Result<usize> {
+    let zeroes = input.find_all(0)?;
+    let mut total = 0;
+
+    for zero in zeroes {
+        // println!("Zero detected at {:?}", zero);
+        let node_nine_coords: Vec<Coord> = spawn_searcher(input, zero, 9)?;
+
+        // println!("Result {}", node_nine_coords.len());
+
+        total += node_nine_coords.len();
+    }
+
+    Ok(total)
 }
