@@ -89,7 +89,7 @@ impl Disk {
                 DiskEntry::FreeSpace(size) => {
                     // println!("Filling space of size {}", size);
                     let mut remaining_size = size;
-                    while remaining_size > 0 {
+                    while remaining_size > 0 && marker_reversed < self.entries.len() {
                         let moving_file = &reversed_disk[marker_reversed];
 
                         match moving_file {
@@ -131,6 +131,63 @@ impl Disk {
         }
         Disk::new(new_disk)
     }
+
+    fn defrag_without_breaking_files(&self) -> Self {
+        let mut disk = self.entries.clone();
+
+        let mut file_to_be_moved_idx = self.entries.len() - 1;
+
+        loop {
+            // println!("Index {} block {:?} disk {:?}", file_to_be_moved_idx, disk[file_to_be_moved_idx], disk);
+            match disk[file_to_be_moved_idx] {
+                DiskEntry::FreeSpace(_) => {}
+                DiskEntry::File(idx, file_size) => {
+                    // println!("To be moved (index {}) Evaluating idx {} size {}", file_to_be_moved_idx, idx, file_size);
+                    let mut file_to_be_overwritten_idx = 0;
+
+                    loop {
+                        match disk[file_to_be_overwritten_idx] {
+                            DiskEntry::File(_inner_idx, _inner_size) => {
+                                // println!("Skipping file idx {_inner_idx} size {_inner_size}")
+                            }
+                            DiskEntry::FreeSpace(free_size) => {
+                                // println!("To be overwritten (index {}) Evaluating free space {}", file_to_be_overwritten_idx, free_size);
+                                if file_size <= free_size {
+                                    disk[file_to_be_overwritten_idx] =
+                                        DiskEntry::File(idx, file_size);
+                                    // println!("Inserted file {idx} size {file_size} into space of {free_size} (index {})", file_to_be_overwritten_idx);
+                                    if file_size < free_size {
+                                        disk.insert(
+                                            file_to_be_overwritten_idx + 1,
+                                            DiskEntry::FreeSpace(free_size - file_size),
+                                        );
+                                        // println!("Reinserted free space of size {} at index {}", free_size - file_size, file_to_be_overwritten_idx + 1);
+                                        file_to_be_moved_idx += 1;
+                                    }
+                                    disk[file_to_be_moved_idx] = DiskEntry::FreeSpace(file_size);
+                                    break;
+                                }
+                            }
+                        }
+
+                        file_to_be_overwritten_idx += 1;
+
+                        if file_to_be_overwritten_idx == file_to_be_moved_idx {
+                            break;
+                        }
+                    }
+                }
+            }
+
+            file_to_be_moved_idx -= 1;
+
+            if file_to_be_moved_idx == 0 {
+                break;
+            }
+        }
+
+        Self::new(disk)
+    }
 }
 
 impl Debug for Disk {
@@ -164,6 +221,9 @@ fn compute_day_a(input: &Disk) -> Result<u64> {
     Ok(defraged_disk.calculate_checksum())
 }
 
-fn compute_day_b(input: &Disk) -> Result<usize> {
-    todo!();
+fn compute_day_b(input: &Disk) -> Result<u64> {
+    // println!("{:?}", input);
+    let defraged_disk = input.defrag_without_breaking_files();
+    // println!("{:?}", defraged_disk);
+    Ok(defraged_disk.calculate_checksum())
 }
