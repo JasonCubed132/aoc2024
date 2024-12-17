@@ -294,4 +294,18 @@ impl<T: Clone + PartialEq + Eq + Hash> Grid<T> {
 
         output
     }
+
+    pub fn get_all_coords_matching(&self, elem: &T) -> Vec<Coord> {
+        let mut output = Vec::new();
+
+        for (x, row) in self.grid.iter().enumerate() {
+            for (y, cell) in row.iter().enumerate() {
+                if cell.get() == elem {
+                    output.push(Coord::new(x, y, self.num_cols, self.num_rows));
+                }
+            }
+        }
+
+        output
+    }
 }

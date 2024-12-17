@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 use anyhow::Result;
 
-use crate::days::{generic_ops::DisplayResult, grid_ops::Coord};
+use crate::days::grid_ops::Coord;
 
 use super::grid_ops::{Cell, Grid};
 
@@ -30,74 +30,30 @@ fn parse_day(input: String) -> Result<Grid<char>> {
 }
 
 fn compute_day_a(input: &Grid<char>) -> Result<usize> {
-    let frequencies_present =
-        input
-            .get_grid()
-            .iter()
-            .flatten()
-            .fold(HashSet::new(), |mut acc, item| {
-                if **item != '.' {
-                    acc.insert(**item);
-                }
-                acc
-            });
+    let mut frequencies_present = input.get_all_elements_present();
+    frequencies_present.retain(|c| c != &'.');
 
     let mut all_antinodes = HashSet::new();
 
     for frequency in frequencies_present {
-        let mut coords = Vec::new();
-        for (y, row) in input.get_grid().iter().enumerate() {
-            for (x, cell) in row.iter().enumerate() {
-                if **cell == frequency {
-                    coords.push(Coord::new(x, y, input.get_num_cols(), input.get_num_rows()))
-                }
-            }
-        }
-
-        println!(
-            "Frequency {:?} Coords {}",
-            frequency,
-            coords
-                .iter()
-                .map(|item| item.to_string())
-                .collect::<Vec<_>>()
-                .join(",")
-        );
-
+        let coords = input.get_all_coords_matching(&frequency);
         let mut anti_nodes = HashSet::new();
 
-        for i in 0..coords.len() {
-            let coord_1 = &coords[i];
-            for j in i + 1..coords.len() {
-                let coord_2 = &coords[j];
-
+        for (i, coord_1) in coords.iter().enumerate() {
+            for (_, coord_2) in coords.iter().enumerate().skip(i + 1) {
                 let delta = *coord_2 - *coord_1;
 
                 let coord_a = coord_1.add_delta(&delta.get_neg());
                 let coord_b = coord_2.add_delta(&delta);
 
-                println!(
-                    "{} {} {} {} {} {}",
-                    i,
-                    j,
-                    DisplayResult::new(&coord_a),
-                    coord_1,
-                    coord_2,
-                    DisplayResult::new(&coord_b)
-                );
-
-                match coord_a {
-                    Ok(coord) => {
-                        anti_nodes.insert(coord);
-                    }
-                    Err(_) => {}
-                }
-                match coord_b {
-                    Ok(coord) => {
-                        anti_nodes.insert(coord);
-                    }
-                    Err(_) => {}
-                }
+                let _ = coord_a.and_then(|inner| {
+                    anti_nodes.insert(inner);
+                    Ok(())
+                });
+                let _ = coord_b.and_then(|inner| {
+                    anti_nodes.insert(inner);
+                    Ok(())
+                });
             }
         }
 
@@ -109,6 +65,45 @@ fn compute_day_a(input: &Grid<char>) -> Result<usize> {
     Ok(all_antinodes.len())
 }
 
-fn compute_day_b(_input: &Grid<char>) -> Result<u32> {
-    todo!();
+fn compute_day_b(input: &Grid<char>) -> Result<usize> {
+    let mut frequencies_present = input.get_all_elements_present();
+    frequencies_present.retain(|c| c != &'.');
+
+    let mut all_antinodes = HashSet::new();
+
+    for frequency in frequencies_present {
+        let coords = input.get_all_coords_matching(&frequency);
+        let mut anti_nodes = HashSet::new();
+
+        for (i, &coord_1) in coords.iter().enumerate() {
+            for (_, &coord_2) in coords.iter().enumerate().skip(i + 1) {
+                anti_nodes.insert(coord_1);
+                anti_nodes.insert(coord_2);
+
+                let delta = coord_2 - coord_1;
+
+                let mut coord_a_result = coord_1.add_delta(&delta.get_neg());
+                while !coord_a_result.is_err() {
+                    let coord_a = coord_a_result.unwrap();
+                    anti_nodes.insert(coord_a);
+
+                    coord_a_result = coord_a.add_delta(&delta.get_neg());
+                }
+
+                let mut coord_b_result = coord_2.add_delta(&delta);
+                while !coord_b_result.is_err() {
+                    let coord_b = coord_b_result.unwrap();
+                    anti_nodes.insert(coord_b);
+
+                    coord_b_result = coord_b.add_delta(&delta);
+                }
+            }
+        }
+
+        for antinode in anti_nodes {
+            all_antinodes.insert(antinode);
+        }
+    }
+
+    Ok(all_antinodes.len())
 }
