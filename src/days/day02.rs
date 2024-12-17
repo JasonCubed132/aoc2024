@@ -90,14 +90,14 @@ fn compute_day_b(input: &Vec<Vec<i32>>) -> Result<i32> {
         .map(|(cnt, asc, dec, report)| {
             if cnt == asc || cnt == dec {
                 1
-            } else if cnt - 1 == asc {
+            } else if cnt - 1 >= asc && cnt - 2 <= asc {
                 let count = test_removals(report, &test_ascending);
                 if count > 0 {
                     1
                 } else {
                     0
                 }
-            } else if cnt - 1 == dec {
+            } else if cnt - 1 >= dec && cnt - 2 <= dec {
                 let count = test_removals(report, &test_descending);
                 if count > 0 {
                     1
@@ -105,8 +105,8 @@ fn compute_day_b(input: &Vec<Vec<i32>>) -> Result<i32> {
                     0
                 }
             } else {
-                print!("Asc {} Dec {} ", asc, dec);
-                println!("Unlikely {:?}", report);
+                // print!("Asc {} Dec {} ", asc, dec);
+                // println!("Unlikely {:?}", report);
                 0
             }
         })
