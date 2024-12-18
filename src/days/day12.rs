@@ -3,7 +3,7 @@ use std::{
     str::FromStr,
 };
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 
 use crate::days::grid_ops::Delta;
 
@@ -35,6 +35,69 @@ impl FromStr for GardenGroups {
         Ok(Self {
             garden: garden_grid,
         })
+    }
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+enum Direction {
+    North,
+    East,
+    South,
+    West
+}
+
+impl Direction {
+    fn to_delta(&self) -> Delta {
+        match self {
+            Self::North => Delta::new(0, -1),
+            Self::East => Delta::new(1, 0),
+            Self::South => Delta::new(0, 1),
+            Self::West => Delta::new(-1, 0)
+        }
+    }
+
+    fn from_delta(delta: Delta) -> Result<Self> {
+        if delta.get_x() == 0 && delta.get_y() != 0 {
+            if delta.get_y() > 0 {
+                Ok(Self::North)
+            } else {
+                Ok(Self::South)
+            }
+        } else if delta.get_x() != 0 && delta.get_y() == 0 {
+            if delta.get_x() > 0 {
+                Ok(Self::East)
+            } else {
+                Ok(Self::West)
+            }
+        } else {
+            Err(anyhow!("Can't figure out a sensible direction from delta {:?}!", delta))
+        }
+    }
+
+    fn turn_90(&self) -> Self {
+        match self {
+            Self::North =>  Self::East,
+            Self::East => Self::South,
+            Self::South => Self::West,
+            Self::West => Self::North,
+        }
+    }
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+enum Axis {
+    X,
+    Y
+}
+
+impl Axis {
+    fn from_direction(direction: &Direction) ->Self {
+        match direction {
+            Direction::North => Self::Y,
+            Direction::East => Self::X,
+            Direction::South => Self::Y,
+            Direction::West => Self::X
+        }
     }
 }
 
@@ -148,4 +211,36 @@ fn compute_day_a(input: &GardenGroups) -> Result<u32> {
 
 fn compute_day_b(input: &GardenGroups) -> Result<u32> {
     todo!();
+    // let _ = input
+    //     .calculate_areas_and_perimetres()?
+    //     .iter()
+    //     .map(|(_, perimeter)| -> Result<()> {
+    //         // Sort fences by axis to reduce the processing later stages do.
+    //         let mut direction_bins = HashMap::new();
+
+    //         for fence in perimeter {
+    //             direction_bins.entry(fence.get_axis()?).and_modify(
+    //                 |vec: &mut Vec<&Fence>| {
+    //                     vec.push(fence);
+    //                 }
+    //             ).or_insert({
+    //                 let mut vec = Vec::new(); 
+    //                 vec.push(fence);
+    //                 vec
+    //             });
+    //         }
+
+    //         for fences in direction_bins.values_mut() {
+    //             if fences.len() == 0 {
+    //                 continue;
+    //             }
+    //             let mut continous_fences = Vec::new();
+    //             let mut current_fence = fences.pop().unwrap();
+    //             continous_fences.push(current_fence);
+    //         }
+
+    //         Ok(())
+    //     });
+    // todo!();
+    // Ok(total)
 }
