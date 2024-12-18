@@ -43,7 +43,7 @@ enum Direction {
     North,
     East,
     South,
-    West
+    West,
 }
 
 impl Direction {
@@ -52,7 +52,7 @@ impl Direction {
             Self::North => Delta::new(0, -1),
             Self::East => Delta::new(1, 0),
             Self::South => Delta::new(0, 1),
-            Self::West => Delta::new(-1, 0)
+            Self::West => Delta::new(-1, 0),
         }
     }
 
@@ -70,13 +70,16 @@ impl Direction {
                 Ok(Self::West)
             }
         } else {
-            Err(anyhow!("Can't figure out a sensible direction from delta {:?}!", delta))
+            Err(anyhow!(
+                "Can't figure out a sensible direction from delta {:?}!",
+                delta
+            ))
         }
     }
 
     fn turn_90(&self) -> Self {
         match self {
-            Self::North =>  Self::East,
+            Self::North => Self::East,
             Self::East => Self::South,
             Self::South => Self::West,
             Self::West => Self::North,
@@ -87,16 +90,16 @@ impl Direction {
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 enum Axis {
     X,
-    Y
+    Y,
 }
 
 impl Axis {
-    fn from_direction(direction: &Direction) ->Self {
+    fn from_direction(direction: &Direction) -> Self {
         match direction {
             Direction::North => Self::Y,
             Direction::East => Self::X,
             Direction::South => Self::Y,
-            Direction::West => Self::X
+            Direction::West => Self::X,
         }
     }
 }
@@ -224,7 +227,7 @@ fn compute_day_b(input: &GardenGroups) -> Result<u32> {
     //                     vec.push(fence);
     //                 }
     //             ).or_insert({
-    //                 let mut vec = Vec::new(); 
+    //                 let mut vec = Vec::new();
     //                 vec.push(fence);
     //                 vec
     //             });
