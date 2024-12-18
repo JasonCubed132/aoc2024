@@ -7,7 +7,7 @@ use anyhow::Result;
 
 use crate::days::grid_ops::Delta;
 
-use super::grid_ops::{Cell, Grid};
+use super::grid_ops::{Cell, Coord, Grid};
 
 pub fn day12(input: String) -> Result<()> {
     let day_parsed_input = parse_day(input)?;
@@ -40,10 +40,7 @@ impl FromStr for GardenGroups {
 
 impl GardenGroups {
     fn calculate_areas_and_perimetres(&self) -> Result<Vec<(u32, u32)>> {
-        let mut areas: HashMap<char, u32> = HashMap::new();
-        let mut perimeters: HashMap<char, u32> = HashMap::new();
-
-        let coords = self.garden.get_all_coords();
+        let mut output = Vec::new();
 
         let offsets = [
             Delta::new(0, 1),
@@ -52,46 +49,72 @@ impl GardenGroups {
             Delta::new(1, 0),
         ];
 
-        // TODO - each region of the same plant needs to be handled
-        //        separately. maybe implement a worker
-        for coord in coords {
-            let plant = self.garden.get_cell_contents(&coord)?;
-            areas
-                .entry(plant)
-                .and_modify(|count| *count += 1)
-                .or_insert(1);
+        let start = Coord::new(0, 0, self.garden.get_num_cols(), self.garden.get_num_rows());
+        let mut globally_explored_coords = HashSet::new();
+        globally_explored_coords.insert(start);
 
-            let mut fences = 0;
+        let mut new_region_coords_to_search = Vec::new();
+        new_region_coords_to_search.push(start);
 
-            for offset in offsets {
-                let new_coord = coord.add_delta(&offset);
+        while new_region_coords_to_search.len() > 0 {
+            // Start exploration of new region based on cell we
+            // know is within that region.
+            let new_region_start_coord = new_region_coords_to_search.pop().unwrap();
 
-                if new_coord.is_err() {
-                    fences += 1;
-                    continue;
-                }
+            let mut coords_in_region = HashSet::new();
+            coords_in_region.insert(new_region_start_coord);
 
-                let neighbour_cell = self.garden.get_cell_contents(&new_coord.unwrap())?;
+            let mut coords_in_region_to_search = Vec::new();
+            coords_in_region_to_search.push(new_region_start_coord);
 
-                if neighbour_cell != plant {
-                    fences += 1;
+            let mut fences: u32 = 0;
+
+            // Discover new cells within region by checking neighbours.
+            while coords_in_region_to_search.len() > 0 {
+                let explore_anchor_coord = coords_in_region_to_search.pop().unwrap();
+                let explore_anchor_cell = self.garden.get_cell_contents(&explore_anchor_coord)?;
+
+                for offset in offsets {
+                    let coord_being_explored_result = explore_anchor_coord.add_delta(&offset);
+
+                    if coord_being_explored_result.is_err() {
+                        fences += 1;
+                        continue;
+                    }
+
+                    let coord_being_explored = coord_being_explored_result.unwrap();
+
+                    let cell_being_explored =
+                        self.garden.get_cell_contents(&coord_being_explored)?;
+
+                    // If the neighbour cell's plant equals the current cell's plant,
+                    // it is part of the same region and add it to the queue to be
+                    // searched as part of the region. Otherwise, add it to the global
+                    // search queue.
+                    if cell_being_explored == explore_anchor_cell {
+                        if !coords_in_region.contains(&coord_being_explored) {
+                            coords_in_region_to_search.push(coord_being_explored);
+                        }
+                        coords_in_region.insert(coord_being_explored);
+                        globally_explored_coords.insert(coord_being_explored);
+                    } else {
+                        fences += 1;
+                        if !globally_explored_coords.contains(&coord_being_explored) {
+                            new_region_coords_to_search.push(coord_being_explored);
+                        }
+                    }
                 }
             }
 
-            perimeters
-                .entry(plant)
-                .and_modify(|count| *count += fences)
-                .or_insert(fences);
-        }
+            let area = coords_in_region.len() as u32;
+            output.push((area, fences));
 
-        let mut output = Vec::new();
-
-        for (plant, area) in areas {
-            let &perimeter = perimeters.get(&plant).unwrap();
-
-            output.push((area, perimeter));
-
-            println!("Plant: {} Area {} Perimeter {}", plant, area, perimeter);
+            println!(
+                "Plant {} Area {} Perimeter {}",
+                self.garden.get_cell_contents(&new_region_start_coord)?,
+                area,
+                fences
+            );
         }
 
         Ok(output)
