@@ -50,8 +50,8 @@ impl GardenGroups {
         ];
 
         let start = Coord::new(0, 0, self.garden.get_num_cols(), self.garden.get_num_rows());
+        // Explored if we have searched its neighbours
         let mut globally_explored_coords = HashSet::new();
-        globally_explored_coords.insert(start);
 
         let mut new_region_coords_to_search = Vec::new();
         new_region_coords_to_search.push(start);
@@ -61,18 +61,27 @@ impl GardenGroups {
             // know is within that region.
             let new_region_start_coord = new_region_coords_to_search.pop().unwrap();
 
-            let mut coords_in_region = HashSet::new();
-            coords_in_region.insert(new_region_start_coord);
+            if globally_explored_coords.contains(&new_region_start_coord) {
+                continue;
+                // Skip as coord has been queued as a new starting point despite being discovered
+                // as an existing region.
+            }
+
+            // println!("Starting new region at {}", new_region_start_coord);
 
             let mut coords_in_region_to_search = Vec::new();
             coords_in_region_to_search.push(new_region_start_coord);
 
             let mut fences: u32 = 0;
+            let mut area: u32 = 0;
 
             // Discover new cells within region by checking neighbours.
             while coords_in_region_to_search.len() > 0 {
                 let explore_anchor_coord = coords_in_region_to_search.pop().unwrap();
                 let explore_anchor_cell = self.garden.get_cell_contents(&explore_anchor_coord)?;
+
+                globally_explored_coords.insert(explore_anchor_coord);
+                area += 1;
 
                 for offset in offsets {
                     let coord_being_explored_result = explore_anchor_coord.add_delta(&offset);
@@ -92,21 +101,24 @@ impl GardenGroups {
                     // searched as part of the region. Otherwise, add it to the global
                     // search queue.
                     if cell_being_explored == explore_anchor_cell {
-                        if !coords_in_region.contains(&coord_being_explored) {
+                        if !globally_explored_coords.contains(&coord_being_explored)
+                            && !coords_in_region_to_search.contains(&coord_being_explored)
+                        {
+                            // println!("Pushed to local {}", coord_being_explored);
                             coords_in_region_to_search.push(coord_being_explored);
                         }
-                        coords_in_region.insert(coord_being_explored);
-                        globally_explored_coords.insert(coord_being_explored);
                     } else {
                         fences += 1;
-                        if !globally_explored_coords.contains(&coord_being_explored) {
+                        if !globally_explored_coords.contains(&coord_being_explored)
+                            && !new_region_coords_to_search.contains(&coord_being_explored)
+                        {
+                            // println!("Pushed to global {} {}", coord_being_explored, self.garden.get_cell_contents(&coord_being_explored)?);
                             new_region_coords_to_search.push(coord_being_explored);
                         }
                     }
                 }
             }
 
-            let area = coords_in_region.len() as u32;
             output.push((area, fences));
 
             println!(
